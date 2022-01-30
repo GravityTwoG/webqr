@@ -1,61 +1,101 @@
 <template>
   <div class="scanner-container">
-    <canvas id="canvas"></canvas>
+    <canvas v-if="isMediaStreamAPISupported" id="canvas" />
+    <p v-else>Media stream API is not supported.</p>
+    <p v-if="!isCameraAllowed">
+      No access to camera.<br />{{ cameraStreamError }}
+    </p>
   </div>
 </template>
 
+<style scoped>
+video {
+  max-width: 100%;
+  max-height: 100%;
+}
+.scanner-container {
+  position: relative;
+}
+</style>
+
 <script lang="ts">
 import { Options, Vue } from 'vue-class-component';
-import jsQR from 'jsqr';
-import { Point } from 'jsqr/dist/locator';
+import { throttle } from '@/utilities';
+
+import {
+  createWorker,
+  destroyWorker,
+  registerMessageListener,
+  sendMessage,
+} from '../qr-recognition.worker-api';
+
+const isMediaStreamAPISupported = () => {
+  return (
+    navigator &&
+    navigator.mediaDevices &&
+    'enumerateDevices' in navigator.mediaDevices &&
+    'getUserMedia' in navigator.mediaDevices
+  );
+};
+
+const getCameraStream = (facingMode = 'environment') => {
+  // Use facingMode: environment to attemt to get the front camera on phones
+  return navigator.mediaDevices.getUserMedia({ video: { facingMode } });
+};
 
 @Options({
-  name: 'stream-barcode-reader',
-
+  name: 'camera-qrcode-reader',
+  emits: ['decode', 'error'],
   data() {
     return {
-      isLoading: true,
       isMounted: false,
-      isMediaStreamAPISupported:
-        navigator &&
-        navigator.mediaDevices &&
-        'enumerateDevices' in navigator.mediaDevices,
+      isMediaStreamAPISupported: isMediaStreamAPISupported(),
+      isCameraAllowed: true,
+      cameraStreamError: '',
     };
   },
 
   mounted() {
     this.isMounted = true;
+
     if (!this.isMediaStreamAPISupported) {
-      throw new Error('Media Stream API is not supported');
+      return;
     }
 
-    const video = document.createElement('video');
+    createWorker();
+    this.throttledSendMessage = throttle(sendMessage, 200);
+
     const canvasElement = document.getElementById(
       'canvas'
     ) as HTMLCanvasElement;
-    const ctx = canvasElement.getContext('2d')!;
+    const ctx = canvasElement.getContext('2d');
+    if (!ctx) return;
+    const video = document.createElement('video');
 
-    function drawLine(begin: Point, end: Point, color: string) {
-      ctx.beginPath();
-      ctx.moveTo(begin.x, begin.y);
-      ctx.lineTo(end.x, end.y);
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = color;
-      ctx.stroke();
-    }
-
-    // Use facingMode: environment to attemt to get the front camera on phones
-    navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: 'environment' } })
+    getCameraStream()
       .then((stream) => {
         const streamTrack = stream.getTracks()[0];
         this.stopCamera = streamTrack.stop.bind(streamTrack);
+        this.isCameraAllowed = true;
 
         video.srcObject = stream;
         video.setAttribute('playsinline', 'true'); // required to tell iOS safari we don't want fullscreen
         video.play();
         requestAnimationFrame(tick);
+      })
+      .catch((e) => {
+        console.log('Error on getCameraStream: ', e);
+        this.isCameraAllowed = false;
+        this.cameraStreamError = e;
       });
+
+    registerMessageListener((code) => {
+      if (code) {
+        this.$emit('decode', code.data);
+      } else {
+        this.$emit('error', 'not found');
+      }
+    });
 
     const tick = () => {
       if (!this.isMounted) return;
@@ -70,34 +110,7 @@ import { Point } from 'jsqr/dist/locator';
           canvasElement.width,
           canvasElement.height
         );
-        var code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: 'dontInvert',
-        });
-        if (code) {
-          drawLine(
-            code.location.topLeftCorner,
-            code.location.topRightCorner,
-            '#FF3B58'
-          );
-          drawLine(
-            code.location.topRightCorner,
-            code.location.bottomRightCorner,
-            '#FF3B58'
-          );
-          drawLine(
-            code.location.bottomRightCorner,
-            code.location.bottomLeftCorner,
-            '#FF3B58'
-          );
-          drawLine(
-            code.location.bottomLeftCorner,
-            code.location.topLeftCorner,
-            '#FF3B58'
-          );
-          this.$emit('decode', code.data);
-        } else {
-          this.$emit('error', 'not found');
-        }
+        this.throttledSendMessage(imageData);
       }
       requestAnimationFrame(tick);
     };
@@ -105,76 +118,9 @@ import { Point } from 'jsqr/dist/locator';
   beforeUnmount() {
     this.isMounted = false;
     if (this.stopCamera) this.stopCamera();
+    destroyWorker();
   },
   methods: {},
 })
 export default class QRCodeScanner extends Vue {}
 </script>
-
-<style scoped>
-video {
-  max-width: 100%;
-  max-height: 100%;
-}
-.scanner-container {
-  position: relative;
-}
-
-.overlay-element {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  height: 99%;
-  background: rgba(30, 30, 30, 0.5);
-
-  -webkit-clip-path: polygon(
-    0% 0%,
-    0% 100%,
-    20% 100%,
-    20% 20%,
-    80% 20%,
-    80% 80%,
-    20% 80%,
-    20% 100%,
-    100% 100%,
-    100% 0%
-  );
-  clip-path: polygon(
-    0% 0%,
-    0% 100%,
-    20% 100%,
-    20% 20%,
-    80% 20%,
-    80% 80%,
-    20% 80%,
-    20% 100%,
-    100% 100%,
-    100% 0%
-  );
-}
-
-.laser {
-  width: 60%;
-  margin-left: 20%;
-  background-color: tomato;
-  height: 1px;
-  position: absolute;
-  top: 40%;
-  z-index: 2;
-  box-shadow: 0 0 4px red;
-  -webkit-animation: scanning 2s infinite;
-  animation: scanning 2s infinite;
-}
-@-webkit-keyframes scanning {
-  50% {
-    -webkit-transform: translateY(75px);
-    transform: translateY(75px);
-  }
-}
-@keyframes scanning {
-  50% {
-    -webkit-transform: translateY(75px);
-    transform: translateY(75px);
-  }
-}
-</style>

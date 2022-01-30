@@ -12,12 +12,15 @@
             <qrcode-vue :value="text" :size="200" level="H" render-as="svg" />
           </div>
 
-          <va-card-actions align="center">
-            <va-button gradient>Copy as SVG</va-button>
-            <va-button gradient>Save as PNG</va-button>
-            <va-button gradient>Save as PDF</va-button>
-          </va-card-actions>
+          <va-divider />
+          <p>Settings</p>
         </va-card-content>
+
+        <va-card-actions align="center">
+          <va-button gradient>Copy as SVG</va-button>
+          <va-button gradient>Save as PNG</va-button>
+          <va-button gradient>Save as PDF</va-button>
+        </va-card-actions>
       </va-card>
     </div>
   </app-container>

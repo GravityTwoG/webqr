@@ -1,18 +1,14 @@
 <template>
   <div id="nav">
-    <va-tabs center>
-      <template #tabs>
-        <va-tab
-          v-for="tab in [
-            { name: 'Scan', link: '/' },
-            { name: 'Create', link: '/create' },
-          ]"
-          :key="tab.name"
-        >
-          <router-link v-bind:to="tab.link">{{ tab.name }}</router-link>
-        </va-tab>
-      </template>
-    </va-tabs>
+    <router-link
+      v-for="tab in [
+        { name: 'Scan QR', link: '/' },
+        { name: 'Create QR', link: '/create' },
+      ]"
+      :key="tab.name"
+      :to="tab.link"
+      >{{ tab.name }}</router-link
+    >
   </div>
 
   <div class="app-content">
@@ -63,12 +59,25 @@
 #nav {
   width: 100%;
   margin: auto;
-  padding: 30px;
+  padding: 1rem;
 }
 
 #nav a {
+  display: inline-block;
+  min-width: 6.5rem;
+  margin: 0.5rem;
+  padding: 0.5rem 0.8rem 0.4rem;
+  background-color: #fff;
+  border-radius: 6px;
   font-weight: bold;
+  line-height: 1;
   color: #2c3e50;
+  transition: color 0.2s ease-out, background-color 0.2s ease-out;
+  box-shadow: var(--va-card-box-shadow, var(--va-block-box-shadow));
+}
+
+#nav a:hover {
+  background-color: #f1f1f1;
 }
 
 #nav a.router-link-exact-active {

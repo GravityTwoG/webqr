@@ -40,10 +40,16 @@
 
 <script lang="ts">
 import { Options, Vue } from 'vue-class-component';
-import jsQR from 'jsqr';
+import {
+  createWorker,
+  destroyWorker,
+  registerMessageListener,
+  sendMessage,
+} from '@/qr-recognition.worker-api';
 
 @Options({
-  name: 'image-barcode-reader',
+  name: 'image-qrcode-reader',
+  emits: ['decode', 'error'],
 
   data() {
     return {};
@@ -52,15 +58,24 @@ import jsQR from 'jsqr';
     const canvas = this.$el.querySelector('.canvas');
     canvas.width = 0;
     canvas.height = 0;
-    this.$el.append(canvas);
     this.canvas = canvas;
     this.ctx = this.canvas.getContext('2d');
     this.src = null;
+
+    createWorker();
+    registerMessageListener((code) => {
+      if (code) {
+        this.$emit('decode', code.data);
+      } else {
+        this.$emit('error', 'not found');
+      }
+    });
   },
   beforeUnmount() {
     if (this.src) {
       URL.revokeObjectURL(this.src);
     }
+    destroyWorker();
   },
   methods: {
     onChangeInput(e: Event) {
@@ -74,8 +89,7 @@ import jsQR from 'jsqr';
         this.src = null;
       }
 
-      //TODO: fix images with transparent background
-
+      //FIX: qr detecting on images with transparent background
       const image = new Image();
 
       image.onload = () => {
@@ -91,11 +105,7 @@ import jsQR from 'jsqr';
           this.canvas.height
         );
         if (!imageData) return;
-
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-        if (code) {
-          this.$emit('decode', code.data);
-        }
+        sendMessage(imageData);
       };
 
       image.src = URL.createObjectURL(files[0]);
