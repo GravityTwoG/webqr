@@ -2,8 +2,8 @@ import jsQR from 'jsqr';
 
 const ctx = self as unknown as Worker;
 
-ctx.addEventListener('message', (e) => {
-  const decoded = jsQR(e.data.data, e.data.width, e.data.height, {
+function decodeQR(data: ImageData) {
+  const decoded = jsQR(data.data, data.width, data.height, {
     inversionAttempts: 'dontInvert',
   });
   if (decoded) {
@@ -11,4 +11,8 @@ ctx.addEventListener('message', (e) => {
   } else {
     ctx.postMessage(null);
   }
+}
+
+ctx.addEventListener('message', (e) => {
+  decodeQR(e.data);
 });

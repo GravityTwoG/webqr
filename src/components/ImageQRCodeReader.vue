@@ -44,7 +44,7 @@ import {
   createWorker,
   destroyWorker,
   registerMessageListener,
-  sendMessage,
+  sendDecodeMessage,
 } from '@/qr-recognition.worker-api';
 
 @Options({
@@ -105,7 +105,7 @@ import {
           this.canvas.height
         );
         if (!imageData) return;
-        sendMessage(imageData);
+        sendDecodeMessage(imageData);
       };
 
       image.src = URL.createObjectURL(files[0]);

@@ -51,13 +51,6 @@
   height: 100%;
   border-radius: 6px;
   background-color: rgb(46 132 224 / 8%);
-  overflow: hidden;
-}
-
-.scanner-container {
-  max-width: 100%;
-  max-height: 100%;
-  height: 100%;
 }
 </style>
 

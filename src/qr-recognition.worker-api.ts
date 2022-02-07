@@ -7,13 +7,18 @@ import { QRCode } from 'jsqr';
 let worker: Worker | null = null;
 
 export function createWorker(): void {
-  worker = new QrWorker() as Worker;
+  if (!worker) {
+    worker = new QrWorker() as Worker;
+  }
 }
 export function destroyWorker(): void {
-  worker?.terminate();
+  if (worker) {
+    worker.terminate();
+    worker = null;
+  }
 }
 
-export function sendMessage(msg: ImageData): void {
+export function sendDecodeMessage(msg: ImageData): void {
   worker?.postMessage(msg);
 }
 

@@ -6,15 +6,30 @@
       No access to camera.<br />{{ cameraStreamError }}
     </p>
   </div>
+  <div class="scanner-control">
+    <select v-model="selectedDevice">
+      <option disabled value="">Select videoInput device</option>
+      <option
+        v-for="device in devices"
+        :value="device.deviceId"
+        :key="device.deviceId"
+      >
+        {{ device.label }}
+      </option>
+    </select>
+  </div>
 </template>
 
 <style scoped>
+.scanner-container {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
 video {
   max-width: 100%;
   max-height: 100%;
-}
-.scanner-container {
-  position: relative;
 }
 </style>
 
@@ -26,22 +41,13 @@ import {
   createWorker,
   destroyWorker,
   registerMessageListener,
-  sendMessage,
-} from '../qr-recognition.worker-api';
-
-const isMediaStreamAPISupported = () => {
-  return (
-    navigator &&
-    navigator.mediaDevices &&
-    'enumerateDevices' in navigator.mediaDevices &&
-    'getUserMedia' in navigator.mediaDevices
-  );
-};
-
-const getCameraStream = (facingMode = 'environment') => {
-  // Use facingMode: environment to attemt to get the front camera on phones
-  return navigator.mediaDevices.getUserMedia({ video: { facingMode } });
-};
+  sendDecodeMessage,
+} from '@/qr-recognition.worker-api';
+import {
+  isMediaStreamAPISupported,
+  getCameraStream,
+  enumerateDevices,
+} from '@/mediaStreamAPI';
 
 @Options({
   name: 'camera-qrcode-reader',
@@ -52,43 +58,41 @@ const getCameraStream = (facingMode = 'environment') => {
       isMediaStreamAPISupported: isMediaStreamAPISupported(),
       isCameraAllowed: true,
       cameraStreamError: '',
+      devices: [],
+      selectedDevice: '',
     };
   },
+  created() {
+    if (!this.isMediaStreamAPISupported) {
+      return;
+    }
+    enumerateDevices()
+      .then((devices) => {
+        const _devices: { deviceId: string; label: string }[] = [];
+        devices.forEach((device) => {
+          if (device.kind === 'videoinput') {
+            _devices.push({
+              deviceId: device.deviceId,
+              label: device.label || 'no label',
+            });
+          }
+        });
+        this.devices = _devices;
+      })
+      .catch(console.log);
 
+    if (this.devices.length) {
+      this.selectedDevice = this.devices[0].deviceid;
+    }
+  },
   mounted() {
     this.isMounted = true;
-
     if (!this.isMediaStreamAPISupported) {
       return;
     }
 
     createWorker();
-    this.throttledSendMessage = throttle(sendMessage, 200);
-
-    const canvasElement = document.getElementById(
-      'canvas'
-    ) as HTMLCanvasElement;
-    const ctx = canvasElement.getContext('2d');
-    if (!ctx) return;
-    const video = document.createElement('video');
-
-    getCameraStream()
-      .then((stream) => {
-        const streamTrack = stream.getTracks()[0];
-        this.stopCamera = streamTrack.stop.bind(streamTrack);
-        this.isCameraAllowed = true;
-
-        video.srcObject = stream;
-        video.setAttribute('playsinline', 'true'); // required to tell iOS safari we don't want fullscreen
-        video.play();
-        requestAnimationFrame(tick);
-      })
-      .catch((e) => {
-        console.log('Error on getCameraStream: ', e);
-        this.isCameraAllowed = false;
-        this.cameraStreamError = e;
-      });
-
+    this.throttledSendMessage = throttle(sendDecodeMessage, 200);
     registerMessageListener((code) => {
       if (code) {
         this.$emit('decode', code.data);
@@ -97,30 +101,61 @@ const getCameraStream = (facingMode = 'environment') => {
       }
     });
 
-    const tick = () => {
-      if (!this.isMounted) return;
-
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvasElement.height = video.videoHeight;
-        canvasElement.width = video.videoWidth;
-        ctx.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-        var imageData = ctx.getImageData(
-          0,
-          0,
-          canvasElement.width,
-          canvasElement.height
-        );
-        this.throttledSendMessage(imageData);
-      }
-      requestAnimationFrame(tick);
-    };
+    this.startVideoStream();
   },
   beforeUnmount() {
     this.isMounted = false;
     if (this.stopCamera) this.stopCamera();
     destroyWorker();
   },
-  methods: {},
+  watch: {
+    selectedDevice() {
+      this.startVideoStream();
+    },
+  },
+  methods: {
+    startVideoStream() {
+      if (this.stopCamera) this.stopCamera();
+
+      const canvas = document.getElementById('canvas') as HTMLCanvasElement;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const video = document.createElement('video');
+
+      const currentDevice = this.selectedDevice;
+      getCameraStream(currentDevice)
+        .then((stream) => {
+          const streamTrack = stream.getTracks()[0];
+
+          this.stopCamera = streamTrack.stop.bind(streamTrack);
+          this.isCameraAllowed = true;
+
+          video.srcObject = stream;
+          video.setAttribute('playsinline', 'true'); // required to tell iOS safari we don't want fullscreen
+          video.play();
+          requestAnimationFrame(tick);
+        })
+        .catch((e) => {
+          console.log('Error on getCameraStream: ', e);
+          this.isCameraAllowed = false;
+          this.cameraStreamError = e;
+        });
+
+      const tick = () => {
+        if (!this.isMounted) return;
+        if (currentDevice !== this.selectedDevice) return;
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.height = video.videoHeight;
+          canvas.width = video.videoWidth;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          this.throttledSendMessage(imageData);
+        }
+        requestAnimationFrame(tick);
+      };
+    },
+  },
 })
 export default class QRCodeScanner extends Vue {}
 </script>
