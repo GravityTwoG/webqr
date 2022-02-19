@@ -21,8 +21,9 @@ export const getCameraStream = (
     video: {
       deviceId,
       facingMode,
-      // width: { ideal: 1280 },
-      // height: { ideal: 720 },
+      width: { ideal: 1920 },
+      height: { ideal: 1920 },
+      aspectRatio: { ideal: 1 },
     },
   });
 };

@@ -9,6 +9,7 @@ import {
   VaFileUpload,
   VaDivider,
   VaIcon,
+  VaSelect,
 } from 'vuestic-ui';
 
 import { router } from './router';
@@ -31,6 +32,7 @@ app
   .component('va-card-content', VaCardContent)
   .component('va-divider', VaDivider)
   .component('va-icon', VaIcon)
-  .component('va-file-upload', VaFileUpload);
+  .component('va-file-upload', VaFileUpload)
+  .component('va-select', VaSelect);
 
 app.mount('#app');

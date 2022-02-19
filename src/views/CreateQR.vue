@@ -3,8 +3,7 @@
     <div class="flex xl12">
       <va-card>
         <va-card-content>
-          <p>Enter your text to create QR code</p>
-          <va-divider />
+          <p class="display-6 mb-2">Enter your text to create QR code</p>
 
           <va-input v-model="text" clearable placeholder="Type your text" />
 
@@ -18,17 +17,13 @@
               render-as="svg"
             />
           </div>
+        </va-card-content>
 
+        <va-card-content>
           <va-divider />
-          <p>Settings</p>
-          <div>
-            <select v-model="level">
-              <option value="" disabled>Select level</option>
-              <option value="L">L</option>
-              <option value="M">M</option>
-              <option value="Q">Q</option>
-              <option value="H">H</option>
-            </select>
+          <p class="display-6 mb-2">Settings</p>
+          <div class="settings">
+            <va-select v-model="level" :options="levels" label="Level" />
           </div>
         </va-card-content>
 
@@ -41,15 +36,6 @@
             @click="downloadSVG"
             >Save as SVG</va-button
           >
-          <!-- 
-          <va-button
-            gradient
-            id="download-png"
-            href="/qr.png"
-            download="qr.png"
-            @click="downloadPNG"
-            >Save as PNG</va-button
-          > -->
         </va-card-actions>
       </va-card>
     </div>
@@ -64,6 +50,10 @@
 
   border-radius: 6px;
   background-color: rgb(46 132 224 / 8%);
+}
+.settings {
+  margin: auto;
+  max-width: 250px;
 }
 </style>
 
@@ -81,6 +71,7 @@ import QrcodeVue from 'qrcode.vue';
       level: 'H',
       background: '#ffffff',
       foreground: '#000000',
+      levels: ['L', 'M', 'Q', 'H'],
     };
   },
   methods: {

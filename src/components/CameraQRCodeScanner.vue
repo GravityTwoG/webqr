@@ -5,18 +5,14 @@
     <p v-if="!isCameraAllowed">
       No access to camera.<br />{{ cameraStreamError }}
     </p>
-  </div>
-  <div class="scanner-control">
-    <select v-model="selectedDevice">
-      <option disabled value="">Select videoInput device</option>
-      <option
-        v-for="device in devices"
-        :value="device.deviceId"
-        :key="device.deviceId"
-      >
-        {{ device.label }}
-      </option>
-    </select>
+
+    <div v-if="devices.length > 1" class="scanner-control">
+      <va-select
+        v-model="selectedDevice"
+        :options="devices"
+        placeholder="Select videoInput device"
+      />
+    </div>
   </div>
 </template>
 
@@ -26,6 +22,16 @@
   max-width: 100%;
   max-height: 100%;
   overflow: hidden;
+}
+.scanner-container canvas {
+  max-width: 100%;
+  max-height: 100%;
+}
+.scanner-control {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%);
 }
 video {
   max-width: 100%;
@@ -68,12 +74,12 @@ import {
     }
     enumerateDevices()
       .then((devices) => {
-        const _devices: { deviceId: string; label: string }[] = [];
+        const _devices: { value: string; text: string }[] = [];
         devices.forEach((device) => {
           if (device.kind === 'videoinput') {
             _devices.push({
-              deviceId: device.deviceId,
-              label: device.label || 'no label',
+              value: device.deviceId,
+              text: device.label || 'no label',
             });
           }
         });
