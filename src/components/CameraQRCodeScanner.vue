@@ -65,7 +65,7 @@ import {
       isCameraAllowed: true,
       cameraStreamError: '',
       devices: [],
-      selectedDevice: '',
+      selectedDevice: { value: '', text: '' },
     };
   },
   created() {
@@ -75,11 +75,11 @@ import {
     enumerateDevices()
       .then((devices) => {
         const _devices: { value: string; text: string }[] = [];
-        devices.forEach((device) => {
+        devices.forEach((device, idx) => {
           if (device.kind === 'videoinput') {
             _devices.push({
               value: device.deviceId,
-              text: device.label || 'no label',
+              text: device.label || `video input ${idx}`,
             });
           }
         });
@@ -88,7 +88,10 @@ import {
       .catch(console.log);
 
     if (this.devices.length) {
-      this.selectedDevice = this.devices[0].deviceid;
+      this.selectedDevice = {
+        value: this.devices[0].deviceid,
+        text: this.devices[0].label || `video input ${0}`,
+      };
     }
   },
   mounted() {
@@ -128,7 +131,7 @@ import {
       if (!ctx) return;
       const video = document.createElement('video');
 
-      const currentDevice = this.selectedDevice;
+      const currentDevice = this.selectedDevice.value;
       getCameraStream(currentDevice)
         .then((stream) => {
           const streamTrack = stream.getTracks()[0];
@@ -149,7 +152,7 @@ import {
 
       const tick = () => {
         if (!this.isMounted) return;
-        if (currentDevice !== this.selectedDevice) return;
+        if (currentDevice !== this.selectedDevice.value) return;
 
         if (video.readyState === video.HAVE_ENOUGH_DATA) {
           canvas.height = video.videoHeight;
