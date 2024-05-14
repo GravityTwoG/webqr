@@ -1,3 +1,7 @@
+<script lang="ts" setup>
+import AppCopyrights from './components/Copyrights.vue';
+</script>
+
 <template>
   <div id="nav">
     <router-link
@@ -84,13 +88,3 @@
   color: var(--va-primary);
 }
 </style>
-
-<script>
-import { Options, Vue } from 'vue-class-component';
-import AppCopyrights from './components/Copyrights.vue';
-
-@Options({
-  components: { AppCopyrights },
-})
-export default class App extends Vue {}
-</script>

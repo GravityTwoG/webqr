@@ -1,3 +1,5 @@
+<script lang="ts" setup></script>
+
 <template>
   <div class="container"><slot /></div>
 </template>
@@ -13,13 +15,3 @@
   }
 }
 </style>
-
-<script>
-import { Options, Vue } from 'vue-class-component';
-
-@Options({
-  components: {},
-  name: 'app-container',
-})
-export default class Container extends Vue {}
-</script>

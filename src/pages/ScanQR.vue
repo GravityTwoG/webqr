@@ -1,3 +1,29 @@
+<script lang="ts" setup>
+import { ref } from 'vue';
+
+import ImageQRCodeReader from '../components/ImageQRCodeReader.vue';
+import CameraQRCodeReader from '../components/CameraQRCodeScanner.vue';
+
+const isCameraEnabled = ref(false);
+const result = ref('');
+const error = ref('');
+
+const onSwitch = () => {
+  isCameraEnabled.value = !isCameraEnabled.value;
+  result.value = '';
+  error.value = '';
+};
+
+const onDecode = (newResult: string) => {
+  result.value = newResult;
+  error.value = '';
+};
+
+const onError = (err: string) => {
+  error.value = err;
+};
+</script>
+
 <template>
   <app-container>
     <div class="flex xl12">
@@ -53,31 +79,3 @@
   background-color: rgb(46 132 224 / 8%);
 }
 </style>
-
-<script lang="ts">
-import { Options, Vue } from 'vue-class-component';
-import ImageQRCodeReader from '../components/ImageQRCodeReader.vue';
-import CameraQRCodeReader from '../components/CameraQRCodeScanner.vue';
-
-@Options({
-  components: { ImageQRCodeReader, CameraQRCodeReader },
-  data() {
-    return { isCameraEnabled: false, result: '', error: '' };
-  },
-  methods: {
-    onSwitch() {
-      this.isCameraEnabled = !this.isCameraEnabled;
-      this.result = '';
-      this.error = '';
-    },
-    onDecode(result: string) {
-      this.result = result;
-      this.error = '';
-    },
-    onError(err: string) {
-      this.error = err;
-    },
-  },
-})
-export default class Home extends Vue {}
-</script>

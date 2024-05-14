@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
-import Scan from '../views/ScanQR.vue';
+import Scan from '../pages/ScanQR.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -14,7 +14,7 @@ const routes: Array<RouteRecordRaw> = [
     // this generates a separate chunk (create.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "create" */ '../views/CreateQR.vue'),
+      import(/* webpackChunkName: "create" */ '../pages/CreateQR.vue'),
   },
 ];
 

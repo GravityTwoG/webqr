@@ -1,3 +1,7 @@
+<script lang="ts" setup>
+const currentYear = new Date(Date.now()).getFullYear();
+</script>
+
 <template>
   <p>
     <va-icon name="copyright" />
@@ -17,7 +21,7 @@ p {
   display: inline-block;
   vertical-align: baseline;
   background-color: #fff;
-  padding: 0.25rem 0.3rem 0.1rem;
+  padding: 0.25rem 0.5rem 0.1rem;
 
   color: black;
   line-height: 1;
@@ -29,16 +33,3 @@ p {
   background-color: #f1f1f1;
 }
 </style>
-
-<script>
-import { Options, Vue } from 'vue-class-component';
-
-@Options({
-  data() {
-    return {
-      currentYear: new Date(Date.now()).getFullYear(),
-    };
-  },
-})
-export default class Copyrights extends Vue {}
-</script>
