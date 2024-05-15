@@ -33,84 +33,24 @@ const emit = defineEmits<{
   (event: 'error', value: string): void;
 }>();
 
+type Device = {
+  value: string;
+  label: string;
+};
+
 const isMounted = ref(false);
 const isMediaStreamAPISupported = ref(_isMediaStreamAPISupported());
 const isCameraAllowed = ref(true);
 const cameraStreamError = ref('');
-const devices = ref<{ value: string; label: string }[]>([]);
-const selectedDevice = ref('');
+const cameras = ref<Device[]>([]);
+const selectedCamera = ref({ value: '', label: '' });
+const isFrontCamera = ref(false);
 
-let throttledSendMessage: (message: ImageData) => void = () => {
+const throttledSendMessage = ref<(message: ImageData) => void>(() => {
   console.log('no camera');
-};
-
-let stopCamera: () => void = () => {
-  console.log('stop camera');
-};
-
-onMounted(async () => {
-  if (!isMediaStreamAPISupported.value) {
-    return;
-  }
-  try {
-    isMounted.value = true;
-    const newDevices = await enumerateDevices();
-    const _devices: { value: string; label: string }[] = [];
-    newDevices.forEach((device, idx) => {
-      if (device.kind === 'videoinput') {
-        _devices.push({
-          value: device.deviceId,
-          label: device.label || `video input ${idx}`,
-        });
-      }
-    });
-    devices.value = _devices;
-
-    if (devices.value.length) {
-      const rearCamera = devices.value.find((d) =>
-        d.label.toLowerCase().includes('back')
-      );
-
-      if (rearCamera) {
-        selectedDevice.value = rearCamera.value;
-      } else {
-        selectedDevice.value = devices.value[0].value;
-      }
-    }
-
-    if (!isMediaStreamAPISupported.value) {
-      return;
-    }
-
-    createWorker();
-    throttledSendMessage = throttle(sendDecodeMessage, 200);
-    registerMessageListener((code) => {
-      if (code) {
-        emit('decode', code.data);
-      } else {
-        emit('error', 'not found');
-      }
-    });
-
-    startVideoStream(selectedDevice.value);
-  } catch (e) {
-    console.error(e);
-  }
 });
 
-onBeforeUnmount(() => {
-  isMounted.value = false;
-  if (stopCamera) stopCamera();
-  destroyWorker();
-});
-
-watch(selectedDevice, () => {
-  startVideoStream(selectedDevice.value);
-});
-
-const startVideoStream = async (currentDevice: string) => {
-  if (stopCamera) stopCamera();
-
+const startVideoStream = async (currentCamera: Device) => {
   const canvas = document.getElementById('canvas') as HTMLCanvasElement;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) return;
@@ -118,14 +58,14 @@ const startVideoStream = async (currentDevice: string) => {
 
   const tick = () => {
     if (!isMounted.value) return;
-    if (currentDevice !== selectedDevice.value) return;
+    if (currentCamera !== selectedCamera.value) return;
 
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
       canvas.height = video.videoHeight;
       canvas.width = video.videoWidth;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      throttledSendMessage(imageData);
+      throttledSendMessage.value(imageData);
     }
     requestAnimationFrame(tick);
   };
@@ -134,7 +74,7 @@ const startVideoStream = async (currentDevice: string) => {
     const width = 1080;
     const aspectRatio = window.innerWidth / window.innerHeight;
     const stream = await getCameraStream({
-      deviceId: currentDevice,
+      deviceId: currentCamera.value,
       idealWidth: width,
       idealHeight: Math.round(width / aspectRatio),
       aspectRatio: 1 / aspectRatio,
@@ -142,7 +82,7 @@ const startVideoStream = async (currentDevice: string) => {
 
     const streamTrack = stream.getTracks()[0];
 
-    stopCamera = streamTrack.stop.bind(streamTrack);
+    stopCamera.value = streamTrack.stop.bind(streamTrack);
     isCameraAllowed.value = true;
 
     video.srcObject = stream;
@@ -155,21 +95,96 @@ const startVideoStream = async (currentDevice: string) => {
     cameraStreamError.value = e as string;
   }
 };
+
+const stopCamera = ref(() => {
+  console.log('stop camera');
+});
+
+onMounted(async () => {
+  isMounted.value = true;
+
+  if (!isMediaStreamAPISupported.value) {
+    return;
+  }
+  try {
+    createWorker();
+    throttledSendMessage.value = throttle(sendDecodeMessage, 200);
+    registerMessageListener((code) => {
+      if (code) {
+        emit('decode', code.data);
+      } else {
+        emit('error', 'not found');
+      }
+    });
+
+    const newDevices = await enumerateDevices();
+    const _cameras: { value: string; label: string }[] = [];
+    newDevices.forEach((device, idx) => {
+      if (device.kind === 'videoinput') {
+        _cameras.push({
+          value: device.deviceId,
+          label: device.label || `video input ${idx}`,
+        });
+      }
+    });
+    cameras.value = _cameras;
+
+    if (cameras.value.length) {
+      const rearCamera = cameras.value.find((d) =>
+        d.label.toLowerCase().includes('back')
+      );
+
+      if (rearCamera) {
+        selectedCamera.value = rearCamera;
+      } else {
+        selectedCamera.value = cameras.value[0];
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+});
+
+onBeforeUnmount(() => {
+  isMounted.value = false;
+  stopCamera.value();
+  destroyWorker();
+});
+
+const onCameraSelect = (deviceId: string) => {
+  const camera = cameras.value.find((c) => c.value === deviceId);
+  if (!camera) return;
+
+  selectedCamera.value = camera;
+};
+
+watch(selectedCamera, () => {
+  stopCamera.value();
+  startVideoStream(selectedCamera.value);
+
+  const cameraLabel = selectedCamera.value.label.toLowerCase();
+  isFrontCamera.value =
+    cameraLabel.includes('front') || cameraLabel.includes('facetime');
+});
 </script>
 
 <template>
   <div :class="[`scanner-container`, props.class]">
-    <canvas v-if="isMediaStreamAPISupported" id="canvas" />
+    <canvas
+      v-if="isMediaStreamAPISupported"
+      id="canvas"
+      :style="{ transform: isFrontCamera ? `scaleX(-1)` : `scaleX(1)` }"
+    />
     <p v-else>Media stream API is not supported.</p>
     <p v-if="!isCameraAllowed">
       No access to camera.<br />{{ cameraStreamError }}
     </p>
 
-    <div v-if="devices.length > 1" class="scanner-control">
+    <div v-if="cameras.length > 1" class="scanner-control">
       <Select
-        :value="selectedDevice"
-        @input="selectedDevice = $event.target.value"
-        :options="devices"
+        :value="selectedCamera.value"
+        @input="onCameraSelect($event.target.value)"
+        :options="cameras"
         placeholder="Select videoInput device"
       />
     </div>
