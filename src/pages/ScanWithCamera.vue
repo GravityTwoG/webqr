@@ -1,15 +1,20 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 
-import Container from '../components/ui/Container.vue';
-import CameraQRCodeReader from '../components/CameraQRCodeScanner.vue';
 import Navbar from '@/components/ui/Navbar.vue';
 import Page from '@/components/ui/Page.vue';
+import CameraQRCodeReader from '@/components/CameraQRCodeScanner.vue';
+import ScanResult from '@/components/ScanResult.vue';
+import ScanError from '@/components/ScanError.vue';
+import { vibrate } from '@/vibrate';
 
 const result = ref('');
 const error = ref('');
 
 const onDecode = (newResult: string) => {
+  if (newResult !== result.value) {
+    vibrate(500);
+  }
   result.value = newResult;
   error.value = '';
 };
@@ -25,12 +30,8 @@ const onError = (err: string) => {
       <CameraQRCodeReader @decode="onDecode" @error="onError" />
     </div>
 
-    <Container class="overlay-container" v-if="result || error">
-      <div class="overlay">
-        <p v-if="result">Last result: {{ result }}</p>
-        <p>{{ error }}</p>
-      </div>
-    </Container>
+    <ScanResult :result="result" />
+    <ScanError :error="error" />
 
     <Navbar />
   </Page>
@@ -41,30 +42,14 @@ const onError = (err: string) => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
 }
 
 .preview-box {
-  width: 100%;
+  width: 100vw;
   height: 100vh;
+  height: 100dvh;
+  top: 0;
   position: fixed;
-  z-index: -1;
-}
-
-.overlay-container {
-  width: 100%;
-  margin-top: auto;
-  margin-bottom: 0;
-  max-width: 500px;
-}
-
-.overlay {
-  width: 100%;
-  background-color: var(--color-paper);
-  opacity: 1;
-  border-radius: 6px;
-  line-height: 1.5;
-  font-size: 2rem;
-  text-align: center;
-  color: var(--color-text);
 }
 </style>

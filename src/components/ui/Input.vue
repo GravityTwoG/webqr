@@ -28,12 +28,14 @@ const emit = defineEmits<{
 <style scoped>
 .Input {
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.75rem;
   color: var(--color-text);
-  font-size: 1.5rem;
+  font-size: 1.25rem;
+  font-family: inherit;
+  line-height: 1;
   background-color: var(--color-paper);
   border: 2px solid var(--color-deco);
-  border-radius: 6px;
+  border-radius: 8px;
   outline: none;
   transition: border-color 0.1s ease;
   caret-color: var(--color-accent);

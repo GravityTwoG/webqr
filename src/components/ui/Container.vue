@@ -18,4 +18,9 @@ const props = defineProps<Props>();
   max-width: 800px;
   padding: 0 12px;
 }
+@media (max-width: 800px) {
+  .container {
+    max-width: 100%;
+  }
+}
 </style>

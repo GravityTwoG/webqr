@@ -61,7 +61,7 @@ const accept = 'image/*';
   color: var(--color-text);
   font-size: 1rem;
   text-align: center;
-  background-color: var(--color-paper);
+  background-color: var(--color-background);
   border: none;
   border-radius: 6px;
   outline: none;

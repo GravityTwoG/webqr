@@ -96,8 +96,9 @@ const onChangeInput = (file: File | null) => {
 }
 
 .qr-image-dropzone canvas {
-  max-width: calc(100% - 32px);
-  max-height: calc(100% - 10rem);
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 10rem);
+  max-height: calc(100dvh - 10rem);
   position: absolute;
   top: 50%;
   left: 50%;

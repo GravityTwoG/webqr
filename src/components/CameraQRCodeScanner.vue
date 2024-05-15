@@ -48,46 +48,54 @@ let stopCamera: () => void = () => {
   console.log('stop camera');
 };
 
-onMounted(() => {
+onMounted(async () => {
   if (!isMediaStreamAPISupported.value) {
     return;
   }
+  try {
+    isMounted.value = true;
+    const newDevices = await enumerateDevices();
+    const _devices: { value: string; label: string }[] = [];
+    newDevices.forEach((device, idx) => {
+      if (device.kind === 'videoinput') {
+        _devices.push({
+          value: device.deviceId,
+          label: device.label || `video input ${idx}`,
+        });
+      }
+    });
+    devices.value = _devices;
 
-  enumerateDevices()
-    .then((newDevices) => {
-      const _devices: { value: string; label: string }[] = [];
-      newDevices.forEach((device, idx) => {
-        if (device.kind === 'videoinput') {
-          _devices.push({
-            value: device.deviceId,
-            label: device.label || `video input ${idx}`,
-          });
-        }
-      });
-      devices.value = _devices;
-    })
-    .catch(console.log);
+    if (devices.value.length) {
+      const rearCamera = devices.value.find((d) =>
+        d.label.toLowerCase().includes('back')
+      );
 
-  if (devices.value.length) {
-    selectedDevice.value = devices.value[0].value;
-  }
-
-  isMounted.value = true;
-  if (!isMediaStreamAPISupported.value) {
-    return;
-  }
-
-  createWorker();
-  throttledSendMessage = throttle(sendDecodeMessage, 200);
-  registerMessageListener((code) => {
-    if (code) {
-      emit('decode', code.data);
-    } else {
-      emit('error', 'not found');
+      if (rearCamera) {
+        selectedDevice.value = rearCamera.value;
+      } else {
+        selectedDevice.value = devices.value[0].value;
+      }
     }
-  });
 
-  startVideoStream(selectedDevice.value);
+    if (!isMediaStreamAPISupported.value) {
+      return;
+    }
+
+    createWorker();
+    throttledSendMessage = throttle(sendDecodeMessage, 200);
+    registerMessageListener((code) => {
+      if (code) {
+        emit('decode', code.data);
+      } else {
+        emit('error', 'not found');
+      }
+    });
+
+    startVideoStream(selectedDevice.value);
+  } catch (e) {
+    console.error(e);
+  }
 });
 
 onBeforeUnmount(() => {
@@ -123,12 +131,13 @@ const startVideoStream = async (currentDevice: string) => {
   };
 
   try {
+    const width = 1080;
     const aspectRatio = window.innerWidth / window.innerHeight;
     const stream = await getCameraStream({
       deviceId: currentDevice,
-      idealWidth: 720,
-      idealHeight: 720 / aspectRatio,
-      aspectRatio: aspectRatio,
+      idealWidth: width,
+      idealHeight: Math.round(width / aspectRatio),
+      aspectRatio: 1 / aspectRatio,
     });
 
     const streamTrack = stream.getTracks()[0];
@@ -179,14 +188,15 @@ const startVideoStream = async (currentDevice: string) => {
 }
 
 .scanner-container canvas {
-  width: 100%;
-  max-width: 100%;
+  width: 100vw;
+  max-width: 100vw;
   max-height: 100%;
+  max-height: 100dvh;
 }
 
 .scanner-control {
   position: absolute;
-  bottom: 6rem;
+  top: 1rem;
   left: 50%;
   transform: translate(-50%);
 }

@@ -23,15 +23,18 @@ export type CameraStreamOptions = {
 export const getCameraStream = (
   options: CameraStreamOptions
 ): Promise<MediaStream> => {
+  const aspectRatio =
+    options.aspectRatio || options.idealWidth / options.idealHeight;
   // Use facingMode: environment to attemt to get the front camera on phones
   return navigator.mediaDevices.getUserMedia({
     video: {
       deviceId: options.deviceId,
       facingMode: options.facingMode || 'environment',
-      width: { ideal: options.idealWidth },
-      height: { ideal: options.idealHeight },
+      width: { max: options.idealWidth },
+      height: { max: options.idealHeight },
       aspectRatio: {
-        ideal: options.aspectRatio || options.idealWidth / options.idealHeight,
+        ideal: aspectRatio,
+        max: aspectRatio,
       },
     },
   });

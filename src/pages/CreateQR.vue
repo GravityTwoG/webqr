@@ -128,7 +128,7 @@ const downloadPNG = (e: Event) => {
         </div>
 
         <div class="field">
-          <p>Enter your text to create QR code</p>
+          <p>Enter your text</p>
           <Input
             class="input"
             :value="text"
@@ -178,6 +178,8 @@ const downloadPNG = (e: Event) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 800px;
+  max-width: 100%;
 
   border-radius: 12px;
   background-color: rgb(46 132 224 / 8%);
@@ -195,7 +197,7 @@ const downloadPNG = (e: Event) => {
 
 .field p {
   margin-bottom: 1rem;
-  font-size: 2rem;
+  font-size: 1.25rem;
 }
 
 .input {

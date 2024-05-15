@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
-import ScanImage from '../pages/ScanImage.vue';
 import ScanWithCamera from '../pages/ScanWithCamera.vue';
 
 const routes: Array<RouteRecordRaw> = [
@@ -11,7 +10,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/scan-image',
     name: 'Scan Image',
-    component: ScanImage,
+    component: () =>
+      import(/* webpackChunkName: "scan-image" */ '../pages/ScanImage.vue'),
   },
   {
     path: '/create',

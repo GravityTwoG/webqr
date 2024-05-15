@@ -40,7 +40,7 @@ const onClick = (event: Event) => {
   background-color: #111;
   color: #eee;
   text-decoration: none;
-  border-radius: 0.5rem;
+  border-radius: 8px;
   outline: none;
   border: none;
   background: radial-gradient(
