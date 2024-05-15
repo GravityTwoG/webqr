@@ -16,5 +16,6 @@ const props = defineProps<Props>();
 .container {
   margin: auto;
   max-width: 800px;
+  padding: 0 12px;
 }
 </style>

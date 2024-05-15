@@ -1,13 +1,13 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import QrcodeVue from 'qrcode.vue';
-import Navbar from '@/components/Navbar.vue';
-import Page from '@/components/Page.vue';
-import AppContainer from '@/components/Container.vue';
-import AppCopyrights from '@/components/Copyrights.vue';
-import Button from '@/components/Button.vue';
-import Input from '@/components/Input.vue';
-import Select from '@/components/Select.vue';
+import Navbar from '@/components/ui/Navbar.vue';
+import Page from '@/components/ui/Page.vue';
+import Container from '@/components/ui/Container.vue';
+import Copyrights from '@/components/Copyrights.vue';
+import Button from '@/components/ui/Button.vue';
+import Input from '@/components/ui/Input.vue';
+import Select from '@/components/ui/Select.vue';
 
 const LEVELS = [
   {
@@ -92,9 +92,9 @@ const downloadPNG = (e: Event) => {
 <template>
   <Page class="page">
     <div class="page-content">
-      <AppContainer>
-        <AppCopyrights />
-      </AppContainer>
+      <Container>
+        <Copyrights />
+      </Container>
 
       <div class="qr-preview">
         <qrcode-vue
@@ -115,7 +115,7 @@ const downloadPNG = (e: Event) => {
         />
       </div>
 
-      <AppContainer>
+      <Container>
         <div class="field">
           <p>Settings</p>
           <Select
@@ -156,7 +156,7 @@ const downloadPNG = (e: Event) => {
             Save as PNG
           </Button>
         </div>
-      </AppContainer>
+      </Container>
     </div>
 
     <Navbar />
@@ -185,6 +185,7 @@ const downloadPNG = (e: Event) => {
 
 .field {
   width: 100%;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -211,5 +212,9 @@ const downloadPNG = (e: Event) => {
 <style>
 .qr-preview canvas {
   display: none;
+}
+.qr-preview svg {
+  max-width: 100%;
+  max-height: 100%;
 }
 </style>

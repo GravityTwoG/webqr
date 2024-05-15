@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 
-import AppContainer from '@/components/Container.vue';
-import Navbar from '@/components/Navbar.vue';
-import Page from '@/components/Page.vue';
+import Container from '@/components/ui/Container.vue';
+import Navbar from '@/components/ui/Navbar.vue';
+import Page from '@/components/ui/Page.vue';
 import ImageQRCodeReader from '@/components/ImageQRCodeReader.vue';
 
 const result = ref('');
@@ -25,10 +25,12 @@ const onError = (err: string) => {
       <ImageQRCodeReader @decode="onDecode" @error="onError" />
     </div>
 
-    <AppContainer class="overlay" v-if="result || error">
-      <p v-if="result">Last result: {{ result }}</p>
-      <p>{{ error }}</p>
-    </AppContainer>
+    <Container class="overlay-container" v-if="result || error">
+      <div class="overlay">
+        <p v-if="result">Last result: {{ result }}</p>
+        <p>{{ error }}</p>
+      </div>
+    </Container>
 
     <Navbar />
   </Page>
@@ -45,16 +47,19 @@ const onError = (err: string) => {
   width: 100%;
   height: 100vh;
   position: fixed;
-  z-index: -1;
+}
+
+.overlay-container {
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: 0;
+  max-width: 500px;
 }
 
 .overlay {
   width: 100%;
   background-color: var(--color-paper);
   opacity: 1;
-  max-width: 500px;
-  margin-top: auto;
-  margin-bottom: 0;
   border-radius: 6px;
   line-height: 1.5;
   font-size: 2rem;

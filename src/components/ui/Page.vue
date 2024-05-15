@@ -11,7 +11,8 @@ const props = defineProps<{ class?: string }>();
 <style scoped>
 .page {
   height: 100vh;
-  padding-bottom: 6rem;
+  height: 100dvh;
+  padding-bottom: 5rem;
   overflow: auto;
 }
 </style>

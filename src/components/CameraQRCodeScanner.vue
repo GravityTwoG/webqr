@@ -20,7 +20,7 @@ import {
   getCameraStream,
   enumerateDevices,
 } from '@/core/mediaStreamAPI';
-import Select from './Select.vue';
+import Select from './ui/Select.vue';
 
 export type Props = {
   class?: string;
@@ -128,6 +128,7 @@ const startVideoStream = async (currentDevice: string) => {
       deviceId: currentDevice,
       idealWidth: 720,
       idealHeight: 720 / aspectRatio,
+      aspectRatio: aspectRatio,
     });
 
     const streamTrack = stream.getTracks()[0];
@@ -185,7 +186,7 @@ const startVideoStream = async (currentDevice: string) => {
 
 .scanner-control {
   position: absolute;
-  bottom: 2rem;
+  bottom: 6rem;
   left: 50%;
   transform: translate(-50%);
 }

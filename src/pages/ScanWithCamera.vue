@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 
-import AppContainer from '../components/Container.vue';
+import Container from '../components/ui/Container.vue';
 import CameraQRCodeReader from '../components/CameraQRCodeScanner.vue';
-import Navbar from '@/components/Navbar.vue';
-import Page from '@/components/Page.vue';
+import Navbar from '@/components/ui/Navbar.vue';
+import Page from '@/components/ui/Page.vue';
 
 const result = ref('');
 const error = ref('');
@@ -25,10 +25,12 @@ const onError = (err: string) => {
       <CameraQRCodeReader @decode="onDecode" @error="onError" />
     </div>
 
-    <AppContainer class="overlay" v-if="result || error">
-      <p v-if="result">Last result: {{ result }}</p>
-      <p>{{ error }}</p>
-    </AppContainer>
+    <Container class="overlay-container" v-if="result || error">
+      <div class="overlay">
+        <p v-if="result">Last result: {{ result }}</p>
+        <p>{{ error }}</p>
+      </div>
+    </Container>
 
     <Navbar />
   </Page>
@@ -48,14 +50,17 @@ const onError = (err: string) => {
   z-index: -1;
 }
 
+.overlay-container {
+  width: 100%;
+  margin-top: auto;
+  margin-bottom: 0;
+  max-width: 500px;
+}
+
 .overlay {
   width: 100%;
   background-color: var(--color-paper);
   opacity: 1;
-  max-width: 500px;
-  margin-top: auto;
-  margin-bottom: 0;
-  padding: 1rem;
   border-radius: 6px;
   line-height: 1.5;
   font-size: 2rem;

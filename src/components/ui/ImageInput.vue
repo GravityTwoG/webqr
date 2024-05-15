@@ -101,7 +101,7 @@ const accept = 'image/*';
   box-sizing: border-box;
   background-color: transparent;
   border: 2px dashed transparent;
-  border-radius: 6px;
+  border-radius: 12px;
   transition: border-color 0.15s ease;
   content: '';
   inset: 1rem;

@@ -6,7 +6,7 @@ import {
   registerMessageListener,
   sendDecodeMessage,
 } from '@/core/qr-recognition.worker-api';
-import ImageInput from './ImageInput.vue';
+import ImageInput from './ui/ImageInput.vue';
 
 export type Props = {
   class?: string;
@@ -96,7 +96,7 @@ const onChangeInput = (file: File | null) => {
 }
 
 .qr-image-dropzone canvas {
-  max-width: 100%;
+  max-width: calc(100% - 32px);
   max-height: calc(100% - 10rem);
   position: absolute;
   top: 50%;
