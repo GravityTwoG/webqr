@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { onMounted, onBeforeUnmount, defineEmits, watch, ref } from 'vue';
+import {
+  onMounted,
+  onBeforeUnmount,
+  defineEmits,
+  defineProps,
+  watch,
+  ref,
+} from 'vue';
 import { throttle } from '@/utilities';
 
 import {
@@ -7,28 +14,36 @@ import {
   destroyWorker,
   registerMessageListener,
   sendDecodeMessage,
-} from '@/qr-recognition.worker-api';
+} from '@/core/qr-recognition.worker-api';
 import {
   isMediaStreamAPISupported as _isMediaStreamAPISupported,
   getCameraStream,
   enumerateDevices,
-} from '@/mediaStreamAPI';
+} from '@/core/mediaStreamAPI';
+import Select from './Select.vue';
+
+export type Props = {
+  class?: string;
+};
+
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  decode: [data: string];
-  error: [value: string];
+  (event: 'decode', data: string): void;
+  (event: 'error', value: string): void;
 }>();
 
 const isMounted = ref(false);
 const isMediaStreamAPISupported = ref(_isMediaStreamAPISupported());
 const isCameraAllowed = ref(true);
 const cameraStreamError = ref('');
-const devices = ref<{ value: string; text: string }[]>([]);
-const selectedDevice = ref({ value: '', text: '' });
+const devices = ref<{ value: string; label: string }[]>([]);
+const selectedDevice = ref('');
 
 let throttledSendMessage: (message: ImageData) => void = () => {
   console.log('no camera');
 };
+
 let stopCamera: () => void = () => {
   console.log('stop camera');
 };
@@ -39,13 +54,13 @@ onMounted(() => {
   }
 
   enumerateDevices()
-    .then((devices) => {
-      const _devices: { value: string; text: string }[] = [];
-      devices.forEach((device, idx) => {
+    .then((newDevices) => {
+      const _devices: { value: string; label: string }[] = [];
+      newDevices.forEach((device, idx) => {
         if (device.kind === 'videoinput') {
           _devices.push({
             value: device.deviceId,
-            text: device.label || `video input ${idx}`,
+            label: device.label || `video input ${idx}`,
           });
         }
       });
@@ -54,10 +69,7 @@ onMounted(() => {
     .catch(console.log);
 
   if (devices.value.length) {
-    selectedDevice.value = {
-      value: devices.value[0].deviceid,
-      text: devices.value[0].label || `video input ${0}`,
-    };
+    selectedDevice.value = devices.value[0].value;
   }
 
   isMounted.value = true;
@@ -75,7 +87,7 @@ onMounted(() => {
     }
   });
 
-  startVideoStream();
+  startVideoStream(selectedDevice.value);
 });
 
 onBeforeUnmount(() => {
@@ -85,39 +97,20 @@ onBeforeUnmount(() => {
 });
 
 watch(selectedDevice, () => {
-  startVideoStream();
+  startVideoStream(selectedDevice.value);
 });
 
-const startVideoStream = () => {
+const startVideoStream = async (currentDevice: string) => {
   if (stopCamera) stopCamera();
 
   const canvas = document.getElementById('canvas') as HTMLCanvasElement;
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   if (!ctx) return;
   const video = document.createElement('video');
 
-  const currentDevice = selectedDevice.value;
-  getCameraStream(currentDevice.value)
-    .then((stream) => {
-      const streamTrack = stream.getTracks()[0];
-
-      stopCamera = streamTrack.stop.bind(streamTrack);
-      isCameraAllowed.value = true;
-
-      video.srcObject = stream;
-      video.setAttribute('playsinline', 'true'); // required to tell iOS safari we don't want fullscreen
-      video.play();
-      requestAnimationFrame(tick);
-    })
-    .catch((e) => {
-      console.log('Error on getCameraStream: ', e);
-      isCameraAllowed.value = false;
-      cameraStreamError.value = e;
-    });
-
   const tick = () => {
     if (!isMounted.value) return;
-    if (currentDevice.value !== selectedDevice.value.value) return;
+    if (currentDevice !== selectedDevice.value) return;
 
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
       canvas.height = video.videoHeight;
@@ -128,11 +121,34 @@ const startVideoStream = () => {
     }
     requestAnimationFrame(tick);
   };
+
+  try {
+    const aspectRatio = window.innerWidth / window.innerHeight;
+    const stream = await getCameraStream({
+      deviceId: currentDevice,
+      idealWidth: 720,
+      idealHeight: 720 / aspectRatio,
+    });
+
+    const streamTrack = stream.getTracks()[0];
+
+    stopCamera = streamTrack.stop.bind(streamTrack);
+    isCameraAllowed.value = true;
+
+    video.srcObject = stream;
+    video.setAttribute('playsinline', 'true'); // required to tell iOS safari we don't want fullscreen
+    video.play();
+    requestAnimationFrame(tick);
+  } catch (e) {
+    console.log('Error on getCameraStream: ', e);
+    isCameraAllowed.value = false;
+    cameraStreamError.value = e as string;
+  }
 };
 </script>
 
 <template>
-  <div class="scanner-container">
+  <div :class="[`scanner-container`, props.class]">
     <canvas v-if="isMediaStreamAPISupported" id="canvas" />
     <p v-else>Media stream API is not supported.</p>
     <p v-if="!isCameraAllowed">
@@ -140,8 +156,9 @@ const startVideoStream = () => {
     </p>
 
     <div v-if="devices.length > 1" class="scanner-control">
-      <va-select
-        v-model="selectedDevice"
+      <Select
+        :value="selectedDevice"
+        @input="selectedDevice = $event.target.value"
         :options="devices"
         placeholder="Select videoInput device"
       />
@@ -152,20 +169,27 @@ const startVideoStream = () => {
 <style scoped>
 .scanner-container {
   position: relative;
-  max-width: 100%;
-  max-height: 100%;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
+
 .scanner-container canvas {
+  width: 100%;
   max-width: 100%;
   max-height: 100%;
 }
+
 .scanner-control {
   position: absolute;
-  bottom: 0;
+  bottom: 2rem;
   left: 50%;
   transform: translate(-50%);
 }
+
 video {
   max-width: 100%;
   max-height: 100%;

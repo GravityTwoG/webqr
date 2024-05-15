@@ -1,15 +1,22 @@
 <script lang="ts" setup>
-import { onMounted, onBeforeUnmount, defineEmits } from 'vue';
+import { onMounted, onBeforeUnmount, defineEmits, defineProps } from 'vue';
 import {
   createWorker,
   destroyWorker,
   registerMessageListener,
   sendDecodeMessage,
-} from '@/qr-recognition.worker-api';
+} from '@/core/qr-recognition.worker-api';
+import ImageInput from './ImageInput.vue';
+
+export type Props = {
+  class?: string;
+};
+
+const props = defineProps<Props>();
 
 const emit = defineEmits<{
-  decode: [data: string];
-  error: [value: string];
+  (event: 'decode', data: string): void;
+  (event: 'error', value: string): void;
 }>();
 
 let canvas: HTMLCanvasElement | null = null;
@@ -18,6 +25,7 @@ let src: string | null = null;
 
 onMounted(() => {
   canvas = document.querySelector('.canvas');
+  if (!canvas) return;
   canvas.width = 0;
   canvas.height = 0;
   ctx = canvas.getContext('2d');
@@ -40,11 +48,8 @@ onBeforeUnmount(() => {
   destroyWorker();
 });
 
-const onChangeInput = (e: Event) => {
-  const target = e.target as HTMLInputElement;
-  if (!target) return;
-  const files = target.files as FileList;
-  if (!files.length) return;
+const onChangeInput = (file: File | null) => {
+  if (!file) return;
 
   if (src) {
     URL.revokeObjectURL(src);
@@ -55,6 +60,9 @@ const onChangeInput = (e: Event) => {
   const image = new Image();
 
   image.onload = () => {
+    if (!canvas) return;
+    if (!ctx) return;
+
     canvas.width = image.width;
     canvas.height = image.height;
 
@@ -65,52 +73,35 @@ const onChangeInput = (e: Event) => {
     sendDecodeMessage(imageData);
   };
 
-  image.src = URL.createObjectURL(files[0]);
+  image.src = URL.createObjectURL(file);
   src = image.src;
 };
 </script>
 
 <template>
-  <div class="qr-image-dropzone">
-    <va-file-upload
-      @input="onChangeInput"
-      dropzone
-      file-types=".jpg,.png"
-      type="gallery"
-    />
+  <div :class="[`qr-image-dropzone`, props.class]">
     <canvas class="canvas" />
+    <ImageInput @input="onChangeInput" />
   </div>
 </template>
 
 <style scoped>
 .qr-image-dropzone {
-  max-width: 100%;
-  max-height: 100%;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .qr-image-dropzone canvas {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  height: 100%;
   max-width: 100%;
+  max-height: calc(100% - 10rem);
+  position: absolute;
+  top: 50%;
+  left: 50%;
   z-index: 1;
-}
-</style>
-
-<style>
-.qr-image-dropzone .va-file-upload {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  position: static;
-}
-.va-file-upload .va-file-upload__field {
-  position: static !important;
-  gap: 0.5rem;
+  transform: translate(-50%, -50%);
 }
 </style>

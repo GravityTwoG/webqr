@@ -1,11 +1,17 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
-import Scan from '../pages/ScanQR.vue';
+import ScanImage from '../pages/ScanImage.vue';
+import ScanWithCamera from '../pages/ScanWithCamera.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'Scan',
-    component: Scan,
+    component: ScanWithCamera,
+  },
+  {
+    path: '/scan-image',
+    name: 'Scan Image',
+    component: ScanImage,
   },
   {
     path: '/create',

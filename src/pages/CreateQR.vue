@@ -1,13 +1,37 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import QrcodeVue from 'qrcode.vue';
+import Navbar from '@/components/Navbar.vue';
+import Page from '@/components/Page.vue';
+import AppContainer from '@/components/Container.vue';
+import AppCopyrights from '@/components/Copyrights.vue';
+import Button from '@/components/Button.vue';
+import Input from '@/components/Input.vue';
+import Select from '@/components/Select.vue';
 
-const LEVELS = ['L', 'M', 'Q', 'H'] as const;
+const LEVELS = [
+  {
+    value: 'L',
+    label: 'Size - L',
+  },
+  {
+    value: 'M',
+    label: 'Size - M',
+  },
+  {
+    value: 'Q',
+    label: 'Size - Q',
+  },
+  {
+    value: 'H',
+    label: 'Size - H',
+  },
+] as const;
 const BACKGROUND = '#ffffff';
 const FOREGROUND = '#000000';
 
-const level = ref<typeof LEVELS[number]>('H');
-const size = ref(200);
+const level = ref<typeof LEVELS[number]['value']>('L');
+const size = ref(400);
 const text = ref('');
 
 const downloadSVG = (e: Event) => {
@@ -66,84 +90,119 @@ const downloadPNG = (e: Event) => {
 </script>
 
 <template>
-  <app-container>
-    <div class="flex xl12">
-      <va-card>
-        <va-card-content>
-          <p class="display-6 mb-2">Enter your text to create QR code</p>
+  <Page class="page">
+    <div class="page-content">
+      <AppContainer>
+        <AppCopyrights />
+      </AppContainer>
 
-          <va-input v-model="text" clearable placeholder="Type your text" />
+      <div class="qr-preview">
+        <qrcode-vue
+          :value="text"
+          :size="size"
+          :level="level"
+          :background="BACKGROUND"
+          :foreground="FOREGROUND"
+          render-as="canvas"
+        />
+        <qrcode-vue
+          :value="text"
+          :size="size"
+          :level="level"
+          :background="BACKGROUND"
+          :foreground="FOREGROUND"
+          render-as="svg"
+        />
+      </div>
 
-          <div class="qr-preview">
-            <qrcode-vue
-              :value="text"
-              :size="size"
-              :level="level"
-              :background="BACKGROUND"
-              :foreground="FOREGROUND"
-              render-as="canvas"
-            />
-            <qrcode-vue
-              :value="text"
-              :size="size"
-              :level="level"
-              :background="BACKGROUND"
-              :foreground="FOREGROUND"
-              render-as="svg"
-            />
-          </div>
-        </va-card-content>
+      <AppContainer>
+        <div class="field">
+          <p>Settings</p>
+          <Select
+            class="input"
+            :value="level"
+            @input="level = $event.target.value as typeof LEVELS[number]['value']"
+            :options="LEVELS"
+            label="Level"
+          />
+        </div>
 
-        <va-card-content>
-          <va-divider />
-          <p class="display-6 mb-2">Settings</p>
-          <div class="settings">
-            <va-select v-model="level" :options="LEVELS" label="Level" />
-          </div>
-        </va-card-content>
+        <div class="field">
+          <p>Enter your text to create QR code</p>
+          <Input
+            class="input"
+            :value="text"
+            @input="text = $event.target.value"
+            placeholder="Type your text"
+          />
+        </div>
 
-        <va-card-actions align="center">
-          <div class="card-actions">
-            <va-button
-              gradient
-              id="download-svg"
-              href="/qr.svg"
-              download="qr.svg"
-              @click="downloadSVG"
-              >Save as SVG</va-button
-            >
+        <div class="actions">
+          <Button
+            id="download-svg"
+            href="/qr.svg"
+            download="qr.svg"
+            @click="downloadSVG"
+          >
+            Save as SVG
+          </Button>
 
-            <va-button
-              gradient
-              id="download-png"
-              href="/qr.png"
-              download="qr.png"
-              @click="downloadPNG"
-              >Save as PNG</va-button
-            >
-          </div>
-        </va-card-actions>
-      </va-card>
+          <Button
+            id="download-png"
+            href="/qr.png"
+            download="qr.png"
+            @click="downloadPNG"
+          >
+            Save as PNG
+          </Button>
+        </div>
+      </AppContainer>
     </div>
-  </app-container>
+
+    <Navbar />
+  </Page>
 </template>
 
 <style scoped>
-.qr-preview {
-  margin-top: 10px;
-  padding: 8px;
-  display: inline-block;
+.page-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 2rem;
+}
 
-  border-radius: 6px;
+.qr-preview {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
   background-color: rgb(46 132 224 / 8%);
 }
 
-.settings {
-  margin: auto;
-  max-width: 250px;
+.field {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1rem;
 }
 
-.card-actions {
+.field p {
+  margin-bottom: 1rem;
+  font-size: 2rem;
+}
+
+.input {
+  width: 100%;
+  max-width: 450px;
+}
+
+.actions {
   display: flex;
   gap: 0.5rem;
 }

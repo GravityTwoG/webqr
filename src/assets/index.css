@@ -1,0 +1,28 @@
+:root {
+  --shadow-paper: 5px 5px 15px 0 #0000000e;
+  --color-background: #101010;
+  --color-paper: #1727319c;
+  --color-text: #f0f0f0;
+  --color-accent: #ff770f;
+  --color-accent-hover: #f7a76c;
+  --color-deco: #333;
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  color: var(--color-text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  background-color: var(--color-background);
+  scroll-behavior: smooth;
+}

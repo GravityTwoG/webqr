@@ -12,18 +12,27 @@ export const enumerateDevices = (): Promise<MediaDeviceInfo[]> =>
 
 export type FacingMode = 'environment' | 'user';
 
+export type CameraStreamOptions = {
+  deviceId: string;
+  facingMode?: FacingMode;
+  idealWidth: number;
+  idealHeight: number;
+  aspectRatio?: number;
+};
+
 export const getCameraStream = (
-  deviceId: string,
-  facingMode: FacingMode = 'environment'
+  options: CameraStreamOptions
 ): Promise<MediaStream> => {
   // Use facingMode: environment to attemt to get the front camera on phones
   return navigator.mediaDevices.getUserMedia({
     video: {
-      deviceId,
-      facingMode,
-      width: { ideal: 720 },
-      height: { ideal: 720 },
-      aspectRatio: { ideal: 1 },
+      deviceId: options.deviceId,
+      facingMode: options.facingMode || 'environment',
+      width: { ideal: options.idealWidth },
+      height: { ideal: options.idealHeight },
+      aspectRatio: {
+        ideal: options.aspectRatio || options.idealWidth / options.idealHeight,
+      },
     },
   });
 };
