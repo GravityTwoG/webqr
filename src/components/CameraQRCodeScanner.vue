@@ -64,7 +64,7 @@ const startVideoStream = async (currentCamera: Device) => {
       canvas.height = video.videoHeight;
       canvas.width = video.videoWidth;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       throttledSendMessage.value(imageData);
     }
     requestAnimationFrame(tick);

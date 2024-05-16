@@ -32,12 +32,11 @@ const onClick = (event: Event) => {
 
 <style scoped>
 .button {
-  padding: 1rem 3rem;
+  padding: 1rem 2rem;
   font-size: 1.25rem;
   line-height: 1;
   position: relative;
   cursor: pointer;
-  background-color: #111;
   color: #eee;
   text-decoration: none;
   border-radius: 8px;

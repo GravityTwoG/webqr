@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
-import ScanWithCamera from '../pages/ScanWithCamera.vue';
+import ScanWithCamera from '@/pages/ScanWithCamera.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -11,7 +11,7 @@ const routes: Array<RouteRecordRaw> = [
     path: '/scan-image',
     name: 'Scan Image',
     component: () =>
-      import(/* webpackChunkName: "scan-image" */ '../pages/ScanImage.vue'),
+      import(/* webpackChunkName: "scan-image" */ '@/pages/ScanImage.vue'),
   },
   {
     path: '/create',
@@ -20,7 +20,7 @@ const routes: Array<RouteRecordRaw> = [
     // this generates a separate chunk (create.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
     component: () =>
-      import(/* webpackChunkName: "create" */ '../pages/CreateQR.vue'),
+      import(/* webpackChunkName: "create" */ '@/pages/CreateQR.vue'),
   },
 ];
 

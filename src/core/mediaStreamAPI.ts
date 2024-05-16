@@ -1,9 +1,7 @@
 export const isMediaStreamAPISupported = (): boolean => {
   return (
-    navigator &&
-    navigator.mediaDevices &&
-    'enumerateDevices' in navigator.mediaDevices &&
-    'getUserMedia' in navigator.mediaDevices
+    'enumerateDevices' in navigator?.mediaDevices &&
+    'getUserMedia' in navigator?.mediaDevices
   );
 };
 
@@ -24,12 +22,12 @@ export const getCameraStream = (
   options: CameraStreamOptions
 ): Promise<MediaStream> => {
   const aspectRatio =
-    options.aspectRatio || options.idealWidth / options.idealHeight;
-  // Use facingMode: environment to attemt to get the front camera on phones
+    options.aspectRatio ?? options.idealWidth / options.idealHeight;
+  // Use facingMode: environment to attemt to get the rear camera on phones
   return navigator.mediaDevices.getUserMedia({
     video: {
       deviceId: options.deviceId,
-      facingMode: options.facingMode || 'environment',
+      facingMode: options.facingMode ?? 'environment',
       width: { max: options.idealWidth },
       height: { max: options.idealHeight },
       aspectRatio: {

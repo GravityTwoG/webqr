@@ -67,6 +67,7 @@ const accept = 'image/*';
   outline: none;
   cursor: pointer;
   transition: border-color 0.15s ease;
+  margin-bottom: 6rem;
 }
 
 .ImageInput > p {

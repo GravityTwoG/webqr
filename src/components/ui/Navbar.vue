@@ -1,19 +1,21 @@
+<script setup lang="ts">
+import InlineSvg from 'vue-inline-svg';
+</script>
+
 <template>
   <div class="navbar">
-    <router-link
-      v-for="tab in [
-        { name: 'Scan', link: '/' },
-        { name: 'Scan Image', link: '/scan-image' },
-        { name: 'Create', link: '/create' },
-      ]"
-      class="link"
-      :key="tab.name"
-      :to="tab.link"
-    >
-      {{ tab.name }}
+    <router-link class="link" key="/" to="/">
+      <InlineSvg src="/Camera.svg" aria-label="Scan QR with Camera" />
     </router-link>
 
-    <slot />
+    <router-link class="link" key="/scan-image" to="/scan-image">
+      <InlineSvg src="/Image.svg" aria-label="Scan QR with Camera" />
+    </router-link>
+
+    <router-link class="link" key="/create" to="/create">
+      Create
+      <InlineSvg src="/QRCode.svg" aria-label="Scan QR with Camera" />
+    </router-link>
   </div>
 </template>
 
@@ -30,15 +32,17 @@
   overflow: auto;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 1rem;
 }
 
 .navbar .link {
-  display: inline-block;
-  min-width: 6.5rem;
-  padding: 0.5rem 0.5rem 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
   background-color: var(--color-paper);
-  border-radius: 6px;
+  border-radius: 2rem;
   font-weight: bold;
   line-height: 1;
   transition: color 0.2s ease-out, background-color 0.2s ease-out;
@@ -48,8 +52,18 @@
   text-align: center;
 }
 
+.navbar .link svg {
+  width: 2rem;
+  height: 2rem;
+  fill: var(--color-text);
+}
+
 .navbar .link:hover {
   background-color: var(--color-deco);
+}
+
+.navbar .link.router-link-exact-active svg {
+  fill: var(--color-accent);
 }
 
 .navbar .link.router-link-exact-active {

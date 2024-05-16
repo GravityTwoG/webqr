@@ -12,7 +12,7 @@ const props = defineProps<{ class?: string }>();
 .page {
   height: 100vh;
   height: 100dvh;
-  padding-bottom: 5rem;
+  padding-bottom: 6rem;
   overflow: auto;
 }
 </style>
