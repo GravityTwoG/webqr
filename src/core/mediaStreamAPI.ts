@@ -1,7 +1,9 @@
 export const isMediaStreamAPISupported = (): boolean => {
+  if (!('mediaDevices' in navigator)) return false;
+
   return (
-    'enumerateDevices' in navigator?.mediaDevices &&
-    'getUserMedia' in navigator?.mediaDevices
+    'enumerateDevices' in navigator.mediaDevices &&
+    'getUserMedia' in navigator.mediaDevices
   );
 };
 

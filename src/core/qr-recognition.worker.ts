@@ -6,11 +6,7 @@ function decodeQR(data: ImageData) {
   const decoded = jsQR(data.data, data.width, data.height, {
     inversionAttempts: 'dontInvert',
   });
-  if (decoded) {
-    ctx.postMessage(decoded);
-  } else {
-    ctx.postMessage(null);
-  }
+  ctx.postMessage(decoded);
 }
 
 ctx.addEventListener('message', (e) => {

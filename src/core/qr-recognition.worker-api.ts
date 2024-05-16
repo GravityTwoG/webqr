@@ -11,6 +11,7 @@ export function createWorker(): void {
     worker = new QrWorker() as Worker;
   }
 }
+
 export function destroyWorker(): void {
   if (worker) {
     worker.terminate();
